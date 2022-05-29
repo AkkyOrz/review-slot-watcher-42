@@ -1,6 +1,7 @@
 import puppeteer, { Page } from 'puppeteer';
 import { createLogger, format, transports } from 'winston';
 import dotenv from 'dotenv';
+import fetch from 'node-fetch';
 import clickButton from './button.js';
 import { setCredentials, CredentialsTokyo42 } from './credentials.js';
 
@@ -58,6 +59,11 @@ const launchBrowser = async () => {
   return puppeteer.launch(configs);
 };
 
+type Period = {
+  start: string;
+  end: string;
+}
+
 const convertTo24Hour = (at_time: string) => {
   const [time, ap] = at_time.split(' ');
   const [hr, min] = time.split(':');
@@ -89,6 +95,35 @@ const getSchedules = async (page: Page, url: string) => {
   return slotPeriods;
 };
 
+
+const postWebhook = async (span: Array<Period> , url: string) => {
+  const body = {
+    username: 'スロットbot',
+    embeds: [
+      {
+        color: 0x36a64f,
+        title: 'スロット',
+        fields: span.map((period) => {
+          return {
+            name: `${period.start} - ${period.end}`,
+            value: '現在の空き時間',
+          };
+        }),
+      },
+    ],
+  };
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  };
+  const response = await fetch(url, options).then(response => response.text())
+  .catch(e => logger.error(e));
+  logger.info(response);
+}
+
 const main = async () => {
   logger.info('start');
 
@@ -100,16 +135,18 @@ const main = async () => {
   await login42Tokyo(page, credentials);
 
   const schedules = await getSchedules(page, credentials.url);
-  const schedules24 = schedules.map(([start, end]) => {
-    return [start, end].map(convertTo24Hour);
+  const schedules24: Array<Period> = schedules.map(([start, end]) => {
+    const [first, second] = [start, end].map(convertTo24Hour);
+    return { start: first, end: second };
   });
-  console.log(schedules24);
-  // await page.waitForTimeout(1000000);
-
-  logger.info('finish');
+  logger.info('crolling finished');
   await browser.close();
+
+  if (schedules24.length > 0) {
+    logger.info('post webhook');
+    await postWebhook(schedules24, credentials.webhook);
+  }
+  logger.info('finish');
 };
 
-main().catch((e) => {
-  logger.info(e);
-});
+main();
