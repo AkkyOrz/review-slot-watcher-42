@@ -21,7 +21,7 @@
     "winston": "^3.6.0"
   },
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "yarn node --loader ts-node/esm src/index.ts",
     "fix": "npm run -s format && npm run -s lint:fix",
     "format": "prettier --write --loglevel=warn '{public,src}/**/*.{js,jsx,ts,tsx,html,gql,graphql,json}'",
     "lint": "npm run -s lint:style; npm run -s lint:es",
@@ -29,8 +29,6 @@
     "lint:es": "eslint 'src/**/*.{js,jsx,ts,tsx}'",
     "lint:es:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx}'",
     "lint:conflict": "eslint-config-prettier 'src/**/*.{js,jsx,ts,tsx}'",
-    "lint:style": "stylelint 'src/**/*.{css,less,sass,scss}'",
-    "lint:style:fix": "stylelint --fix 'src/**/*.{css,less,sass,scss}'",
     "preinstall": "typesync || :",
     "prepare": "simple-git-hooks > /dev/null"
   },

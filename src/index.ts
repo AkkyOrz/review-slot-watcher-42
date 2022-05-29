@@ -1,14 +1,12 @@
 import puppeteer, { Page } from 'puppeteer';
-// import { assert } from 'console';
 import { createLogger, format, transports } from 'winston';
 import dotenv from 'dotenv';
 import clickButton from './button.js';
 import { setCredentials, CredentialsTokyo42 } from './credentials.js';
-// const { createLogger, format, transports } = require('winston');
 
 const envPath = './.env';
 
-dotenv.config({path: envPath})
+dotenv.config({ path: envPath });
 
 const { combine, timestamp, label } = format;
 
@@ -21,11 +19,6 @@ type BrowserSettingType = {
   slowMo?: number;
 };
 
-// const myFormat = printf(
-//   ({ level, message, timestamp_ }: InfoType) =>
-//     `${timestamp_} ${level}: ${message}`,
-// );
-
 const logger = createLogger({
   format: combine(label({ message: true }), timestamp(), format.json()),
   transports: [
@@ -34,15 +27,9 @@ const logger = createLogger({
   ],
 });
 
-const hasAlreadyLoggedIn42 = async (page: Page) => {
-  await page.goto('https://discord.42tokyo.jp/');
-
-  const loginMainDiv = await page.$('#user_login');
-
-  return loginMainDiv === null;
-};
-
 const login42Tokyo = async (page: Page, cred42: CredentialsTokyo42) => {
+  logger.info('-----------42tokyo login------------');
+  await page.goto('https://signin.intra.42.fr/users/sign_in');
   await page.type('#user_login', cred42.name);
   await page.type('#user_password', cred42.password);
 
@@ -67,18 +54,39 @@ const launchBrowser = async () => {
   if (process.env.ENVIRONMENT === 'local') {
     configs.headless = false;
     configs.slowMo = 10;
-    configs.executablePath = '/snap/bin/chromium';
-    if (process.env.HOME) {
-      configs.userDataDir = `${process.env.HOME}/snap/chromium/common/chromium/`;
-    }
-  } else if (process.env.ENVIRONMENT === 'browser') {
-    configs.executablePath = '/snap/bin/chromium';
-    if (process.env.HOME) {
-      configs.userDataDir = `${process.env.HOME}/snap/chromium/common/chromium/`;
-    }
   }
-
   return puppeteer.launch(configs);
+};
+
+const convertTo24Hour = (at_time: string) => {
+  const [time, ap] = at_time.split(' ');
+  const [hr, min] = time.split(':');
+  if (ap === 'PM') {
+    return `${parseInt(hr) + 12}:${min}`;
+  }
+  return `${hr}:${min}`;
+}
+
+const getSchedules = async (page: Page, url: string) => {
+  logger.info('-----------get schedules------------');
+
+  await Promise.all([
+    page.goto(url),
+    page.waitForSelector('div[class=fc-view-container]'),
+  ]);
+
+  await page.waitForTimeout(1000);
+  const slotDivs = await page.$$('a.fc-time-grid-event');
+  const slotPeriods = await Promise.all(slotDivs.map(async (slotDiv) => {
+    const children = await slotDiv.$('div.fc-content > div.fc-time');
+    if (children) {
+       const period = await page.evaluate(span => span.getAttribute('data-full'), children);
+      return period.split('-').map((p: string) => p.trim());
+    }
+  }));
+
+  logger.info(slotPeriods);
+  return slotPeriods;
 };
 
 const main = async () => {
@@ -89,16 +97,19 @@ const main = async () => {
   const browser = await launchBrowser();
   const page: Page = await browser.newPage();
 
-  const hasLoggedIn42 = await hasAlreadyLoggedIn42(page);
-  if (!hasLoggedIn42) {
-    await login42Tokyo(page, credentials);
-  } else {
-    logger.info('already logged in 42');
-  }
-  await authorize42Tokyo(page);
+  await login42Tokyo(page, credentials);
+
+  const schedules = await getSchedules(page, credentials.url);
+  const schedules24 = schedules.map(([start, end]) => {
+    return [start, end].map(convertTo24Hour);
+  });
+  console.log(schedules24);
+  // await page.waitForTimeout(1000000);
 
   logger.info('finish');
   await browser.close();
 };
 
-main().catch(e => {logger.info(e)});
+main().catch((e) => {
+  logger.info(e);
+});
