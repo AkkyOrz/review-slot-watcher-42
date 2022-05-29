@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import fetch from 'node-fetch';
 import clickButton from './button.js';
 import { setCredentials, CredentialsTokyo42 } from './credentials.js';
+import assertIsDefined from './assertIsDefined.js';
 
 const envPath = './.env';
 
@@ -73,15 +74,7 @@ const convertTo24Hour = (at_time: string) => {
   return `${hr}:${min}`;
 }
 
-const getSchedules = async (page: Page, url: string) => {
-  logger.info('-----------get schedules------------');
-
-  await Promise.all([
-    page.goto(url),
-    page.waitForSelector('div[class=fc-view-container]'),
-  ]);
-
-  await page.waitForTimeout(1000);
+const getSchedulesFromSlot = async (page: Page, url: string) => {
   const slotDivs = await page.$$('a.fc-time-grid-event');
   const slotPeriods = await Promise.all(slotDivs.map(async (slotDiv) => {
     const children = await slotDiv.$('div.fc-content > div.fc-time');
@@ -91,10 +84,30 @@ const getSchedules = async (page: Page, url: string) => {
     }
   }));
 
-  logger.info(slotPeriods);
   return slotPeriods;
-};
+}
 
+const getSchedules = async (page: Page, url: string) => {
+  logger.info('-----------get schedules------------');
+
+  await Promise.all([
+    page.goto(url),
+    page.waitForSelector('div[class=fc-view-container]'),
+  ]);
+
+  await page.waitForTimeout(1000);
+
+  const slotPeriods = await getSchedulesFromSlot(page, url);
+
+  const leftButton = await page.$('button.fc-next-button');
+  assertIsDefined(leftButton);
+  await leftButton.click();
+  await page.waitForTimeout(1000);
+
+  const nextSlotPeriods = await getSchedulesFromSlot(page, url);
+
+  return slotPeriods.concat(nextSlotPeriods);
+};
 
 const postWebhook = async (span: Array<Period> , url: string) => {
   const body = {
