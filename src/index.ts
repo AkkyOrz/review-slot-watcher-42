@@ -41,13 +41,6 @@ const login42Tokyo = async (page: Page, cred42: CredentialsTokyo42) => {
   logger.info('-----------42tokyo login success------------');
 };
 
-const authorize42Tokyo = async (page: Page) => {
-  const authorizeButtonDiv = await page.$('.actions');
-  const authorizeButton = await authorizeButtonDiv?.$('.btn-success');
-  await clickButton(page, authorizeButton);
-  logger.info('-----------42tokyo OAuth success------------');
-};
-
 const launchBrowser = async () => {
   const configs: BrowserSettingType = {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
