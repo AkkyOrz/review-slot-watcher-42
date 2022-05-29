@@ -34,6 +34,8 @@ module.exports = {
   ],
   root: true,
   rules: {
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/no-unsafe-call': 'off',
     // occur error in `import React from 'react'` with react-scripts 4.0.1
     'no-use-before-define': 'off',
     '@typescript-eslint/no-use-before-define': ['error'],
