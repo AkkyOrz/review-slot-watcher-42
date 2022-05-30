@@ -61,7 +61,7 @@ type Period = {
 const convertTo24Hour = (at_time: string) => {
   const [time, ap] = at_time.split(' ');
   const [hr, min] = time.split(':');
-  if (ap === 'PM') {
+  if (ap === 'PM' && hr !== '12') {
     return `${parseInt(hr) + 12}:${min}`;
   }
   return `${hr}:${min}`;
