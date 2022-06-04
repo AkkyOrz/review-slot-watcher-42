@@ -43,8 +43,8 @@ $ yarn start # headless mode
 
 ```bash
 $ crontab -e
-# 04:05(JST) (UTC 19:05) に起動する場合
-5 19 * * * /path/to/yarn --cwd /path/to/review-slot-watcher-42 start 2>> /path/to/error.log >> /path/to/result.log
+# example
+1,16,31,46 * * * * /path/to/yarn --cwd /path/to/review-slot-watcher-42 start 2>> /path/to/error.log >> /path/to/result.log
 ```
 
 うまく行かない場合はログファイルを確認してみると解決するかもしれません。
