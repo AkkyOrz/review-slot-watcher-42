@@ -179,8 +179,6 @@ const main = async () => {
     });
   });
 
-  console.log(schedules24);
-
   logger.info('crolling finished');
   await browser.close();
 
