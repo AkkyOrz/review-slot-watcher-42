@@ -84,16 +84,8 @@ const getSchedulesFromSlot = async (page: Page, elem: puppeteer.ElementHandle<El
   return slotPeriods.filter((item): item is NonNullable<typeof item> => item != null);
 }
 
-const getSchedules = async (page: Page, url: string) => {
+const getSchedules = async (page: Page) => {
   logger.info('-----------get schedules------------');
-
-  await Promise.all([
-    page.goto(url),
-    page.waitForSelector('div[class=fc-view-container]'),
-  ]);
-
-  await page.waitForTimeout(1000);
-
   const weekHeader = await page.$$('div.fc-row.fc-widget-header > table > thead > tr > th.fc-day-header');
   const weekDays: Array<string> = await Promise.all(
     weekHeader
@@ -159,13 +151,39 @@ const main = async () => {
 
   await login42Tokyo(page, credentials);
 
-  const scheduleObj = await getSchedules(page, credentials.url);
+
+  await Promise.all([
+    page.goto(credentials.url),
+    page.waitForSelector('div[class=fc-view-container]'),
+  ]);
+  await page.waitForTimeout(1000);
+
+
+  const scheduleObjFirst = await getSchedules(page);
+
+  logger.info('next week');
+  const nextWeekButton = await page.$('button.fc-next-button');
+  await nextWeekButton?.click();
+  await page.waitForTimeout(1000);
+
+  const scheduleObjNext = await getSchedules(page);
+  const scheduleObj = {
+    weekDays: scheduleObjFirst.weekDays.concat(scheduleObjNext.weekDays),
+    slotPeriodsPerDay: scheduleObjFirst.slotPeriodsPerDay.concat(scheduleObjNext.slotPeriodsPerDay),
+  };
+
   const schedules24: Array<Array<Period>> = scheduleObj['slotPeriodsPerDay'].map((schedule) => {
     return schedule.map(([start, end]) => {
       const [first, second] = [start, end].map(convertTo24Hour);
       return { start: first, end: second };
     });
   });
+
+  console.log(schedules24);
+
+
+
+
   logger.info('crolling finished');
   await browser.close();
 
