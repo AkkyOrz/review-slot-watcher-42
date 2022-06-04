@@ -169,7 +169,10 @@ const main = async () => {
   logger.info('crolling finished');
   await browser.close();
 
-  if (schedules24.length > 0) {
+  const totalSchedulesNum = schedules24.reduce((acc: number, curr: Array<Period>) => {
+    return acc + curr.length;
+  }, 0);
+  if (totalSchedulesNum > 0) {
    logger.info('post webhook');
    await postWebhook(schedules24, scheduleObj['weekDays'], credentials.webhook);
   }
