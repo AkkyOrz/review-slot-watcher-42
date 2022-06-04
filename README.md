@@ -7,6 +7,10 @@
 ## 概要
 
 このリポジトリは、42-Tokyo でのレビュースロットを監視するために作られました
+`FT_URL` に監視したいスロットのURLを記述し、cronで提起実行することで、Slotを監視することができます。
+現在はDiscordのWebhookを `DISCORD_WEBHOOK_URL` に記述するこによって、特定のChannelにSlot情報を投稿するようになっています。
+
+[Intro to Webhooks – Discord](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
 
 ## local で使用する場合
 
