@@ -31,7 +31,7 @@ $ cd review-slot-watcher-42
 $ cat << EOF > .env
 TOKYO_42_USERNAME="sample_user"
 TOKYO_42_PASSWORD="password"
-FT_RUL="https://projects.intra.42.fr/projects/<project-name>/slots?team_id=<id>"
+FT_URL="https://projects.intra.42.fr/projects/<project-name>/slots?team_id=<id>"
 DISCORD_WEBHOOK_URL="<webhook-url>"
 EOF
 $ npm install -g yarn
