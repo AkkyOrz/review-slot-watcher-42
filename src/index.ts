@@ -30,6 +30,13 @@ const logger = createLogger({
   ],
 });
 
+const hasAlreadyLoggedIn42 = async (page: Page) => {
+  await page.goto('https://signin.intra.42.fr/users/sign_in');
+
+  const loginMainDiv = await page.$("#user_login");
+  return (loginMainDiv === null ? true : false) as boolean;
+};
+
 const login42Tokyo = async (page: Page, cred42: CredentialsTokyo42) => {
   logger.info('-----------42tokyo login------------');
   await page.goto('https://signin.intra.42.fr/users/sign_in');
@@ -47,9 +54,15 @@ const launchBrowser = async () => {
     args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
     ignoreDefaultArgs: ['--disable-extensions'],
   };
-  if (process.env.ENVIRONMENT === 'local') {
-    configs.headless = false;
-    configs.slowMo = 10;
+  switch (process.env.ENVIRONMENT) {
+    case 'local':
+      configs.headless = false;
+      configs.slowMo = 10;
+      break;
+    case "browser":
+      configs.executablePath = "/opt/google/chrome/google-chrome";
+      configs.userDataDir = process.env.HOME + "/.config/google-chrome/";
+      break;
   }
   return puppeteer.launch(configs);
 };
@@ -149,8 +162,12 @@ const main = async () => {
   const browser = await launchBrowser();
   const page: Page = await browser.newPage();
 
-  await login42Tokyo(page, credentials);
-
+  const hasLoggedIn42 = await hasAlreadyLoggedIn42(page);
+  if (!hasLoggedIn42) {
+    await login42Tokyo(page, credentials);
+  } else {
+    logger.info("already logged in 42");
+  }
 
   await Promise.all([
     page.goto(credentials.url),
