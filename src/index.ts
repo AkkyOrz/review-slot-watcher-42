@@ -60,8 +60,8 @@ const launchBrowser = async () => {
       configs.slowMo = 10;
       break;
     case "browser":
-      configs.executablePath = "/opt/google/chrome/google-chrome";
-      configs.userDataDir = process.env.HOME + "/.config/google-chrome/";
+      configs.executablePath = process.env.BROWSER_EXECUTABLE_PATH;
+      configs.userDataDir = process.env.USER_DATA_DIR;
       break;
   }
   return puppeteer.launch(configs);
