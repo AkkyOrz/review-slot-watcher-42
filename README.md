@@ -33,6 +33,9 @@ TOKYO_42_USERNAME="sample_user"
 TOKYO_42_PASSWORD="password"
 FT_URL="https://projects.intra.42.fr/projects/<project-name>/slots?team_id=<id>"
 DISCORD_WEBHOOK_URL="<webhook-url>"
+ENVIRONMENT=browser # ブラウザのキャッシュを使用したい場合に指定する
+BROWSER_EXECUTABLE_PATH="/snap/bin/chromium" # snapでinstallしたchromiumの場合 (which chromium-browserで取得可能)
+USER_DATA_DIR="/home/<username>/snap/chromium/common/chromium" # snapでinstallしたchromiumの場合 (chrome://versionを確認するとそれっぽいものが確認できるかも)
 EOF
 $ npm install -g yarn
 $ yarn
