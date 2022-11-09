@@ -173,7 +173,7 @@ const main = async () => {
     page.goto(credentials.url),
     page.waitForSelector('div[class=fc-view-container]'),
   ]);
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(5000);
 
 
   const scheduleObjFirst = await getSchedules(page);
