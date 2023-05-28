@@ -30,21 +30,25 @@ const logger = createLogger({
   ],
 });
 
+// click class="btn btn-login-student"
 const hasAlreadyLoggedIn42 = async (page: Page) => {
   await page.goto('https://signin.intra.42.fr/users/sign_in');
 
-  const loginMainDiv = await page.$("#user_login");
-  return (loginMainDiv === null ? true : false) as boolean;
-};
+  const loginButton = await page.$('.btn.btn-login-student');
+  return (loginButton === null ? true : false) as boolean;
+}
+
 
 const login42Tokyo = async (page: Page, cred42: CredentialsTokyo42) => {
   logger.info('-----------42tokyo login------------');
   await page.goto('https://signin.intra.42.fr/users/sign_in');
-  await page.type('#user_login', cred42.name);
-  await page.type('#user_password', cred42.password);
+  const loginButton = await page.$('.btn.btn-login-student');
+  assertIsDefined(loginButton);
+  await clickButton(page, loginButton);
 
-  const submitButtonDiv = await page.$('.form-actions');
-  const submitButton = await submitButtonDiv?.$('.btn');
+  await page.type('#password', cred42.password);
+
+  const submitButton = await page.$('#kc-login');
   await clickButton(page, submitButton);
   logger.info('-----------42tokyo login success------------');
 };
