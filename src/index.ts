@@ -46,6 +46,7 @@ const login42Tokyo = async (page: Page, cred42: CredentialsTokyo42) => {
   assertIsDefined(loginButton);
   await clickButton(page, loginButton);
 
+  await page.type("#username", cred42.name);
   await page.type('#password', cred42.password);
 
   const submitButton = await page.$('#kc-login');
